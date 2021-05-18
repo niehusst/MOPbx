@@ -25,6 +25,7 @@ jobs:
     <<: *defaults
     steps:
       - checkout
+      - *restore_deps
       - python/install-packages:
           pkg-manager: pip
       - save_cache:
