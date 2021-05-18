@@ -30,7 +30,7 @@ jobs:
       - save_cache:
           key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
           paths: 
-            - "venv"
+            - "/home/circleci/.cache/pip"
 
   tests:
     <<: *defaults
