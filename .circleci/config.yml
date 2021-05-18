@@ -1,0 +1,57 @@
+aliases:
+  - &root_dir
+    ~/code
+
+defaults: &defaults
+  working-directory: *root_dir
+  docker:
+    - image: circleci/python:3.6
+
+restore_deps: &restore_deps
+  restore_cache:
+    key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+
+attach_workspace: &attach_workspace
+  attach_workspace:
+    at: *root_dir
+
+version: 2.1
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_deps
+      - run:
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "venv"
+
+  tests:
+    <<: *defaults
+    steps:
+      - checkout
+      - *attach_workspace
+      - *restore_deps
+      - run:
+          name: Running tests
+          command: |
+            . venv/bin/activate
+            pytest --rootdir=tests/
+      - store_artifacts:
+          path: test-reports/
+
+
+# Job ordering
+workflows:
+  branch-validation:
+    jobs:
+      - build
+      - tests:
+          requires:
+            - build
