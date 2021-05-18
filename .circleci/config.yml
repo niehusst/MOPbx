@@ -1,12 +1,53 @@
-version: 2.1
+aliases:
+  - &root_dir
+    ~/code
 
 defaults: &defaults
+  working_directory: *root_dir
   docker:
-    - image: cimg/python:3.8
+    - image: circleci/python:3.6
 
-orbs:
-  python: circleci/python@1.2
+restore_deps: &restore_deps
+  restore_cache:
+    key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
 
+attach_workspace: &attach_workspace
+  attach_workspace:
+    at: *root_dir
+
+version: 2.1
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - checkout
+      - *restore_deps
+      - run:
+          command: |
+            python3 -m venv venv
+            . venv/bin/activate
+            pip install -r requirements.txt
+      - save_cache:
+          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
+          paths:
+            - "venv"
+
+  tests:
+    <<: *defaults
+    steps:
+      - checkout
+      - *attach_workspace
+      - *restore_deps
+      - run:
+          name: Running tests
+          command: |
+            . venv/bin/activate
+            pytest
+      - store_artifacts:
+          path: test-reports/
+
+
+# Job ordering
 workflows:
   branch-validation:
     jobs:
@@ -14,23 +55,3 @@ workflows:
       - tests:
           requires:
             - build
-
-
-jobs:
-  build:  
-    <<: *defaults
-    steps:
-      - checkout
-      - python/install-packages:
-          pkg-manager: pip
-
-  tests:
-    <<: *defaults
-    steps:
-      - checkout
-#      - python/restore-packages:
-#          pkg-manager: pip
-      - run:
-          name: Run tests
-          command: pytest
-
