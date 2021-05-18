@@ -4,10 +4,6 @@ defaults: &defaults
   docker:
     - image: cimg/python:3.8
 
-restore_deps: &restore_deps
-  restore_cache:
-    key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
-
 orbs:
   python: circleci/python@1.2
 
@@ -25,19 +21,15 @@ jobs:
     <<: *defaults
     steps:
       - checkout
-      - *restore_deps
       - python/install-packages:
           pkg-manager: pip
-      - save_cache:
-          key: deps1-{{ .Branch }}-{{ checksum "requirements.txt" }}
-          paths: 
-            - "/home/circleci/.cache/pip"
 
   tests:
     <<: *defaults
     steps:
       - checkout
-      - *restore_deps
+#      - python/restore-packages:
+#          pkg-manager: pip
       - run:
           name: Run tests
           command: pytest
