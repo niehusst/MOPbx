@@ -2,11 +2,13 @@
 
 [![CircleCI](https://circleci.com/gh/niehusst/MOPbx.svg?style=svg)](https://app.circleci.com/pipelines/github/niehusst/MOPbx)
 
+Mop up garbage translation files and clean junk from your .pbxproj file!
+
 If you hate manually cleaning the .pbxproj file in your iOS projects of
 empty translation (.strings) files, translation files for .xibs that no
 longer exist, or slowly removing pbx references to files that no longer 
-exist, then this is the repo/script for you! (Billy Mays' voice echos
-in your mind)
+exist one by one, then this is the repo/script for you! (Ryan Higa's 
+voice echos in your mind; you hear him selling you a DVD about mops.)
 
 ## Setup
 
