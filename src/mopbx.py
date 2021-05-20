@@ -1,3 +1,6 @@
+# if you make any additions that could also be useful for someone else,
+# consider making a PR!  https://github.com/niehusst/MOPbx
+
 import sys
 
 """
