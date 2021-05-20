@@ -1,5 +1,7 @@
 # MOPbx
 
+[![CircleCI](https://circleci.com/gh/niehusst/MOPbx.svg?style=svg)](https://app.circleci.com/pipelines/github/niehusst/MOPbx)
+
 If you hate manually cleaning the .pbxproj file in your iOS projects of
 empty translation (.strings) files, translation files for .xibs that no
 longer exist, or slowly removing pbx references to files that no longer 
