@@ -1,5 +1,5 @@
 import pytest
-from ..mopbx import main
+from MOPbx.src.mopbx import main
 
 """
 To test:
