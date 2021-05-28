@@ -4,7 +4,6 @@ from MOPbx.src.mopbx import main
 """
 To test:
 
-* command line flag functionality
 * empty .strings files removed from file system (and pbx)
 * remove .strings files from fs where source xib not present in fs (and pbx)
 * rm pbx refs to files not in fs
