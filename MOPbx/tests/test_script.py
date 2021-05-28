@@ -5,7 +5,7 @@ from MOPbx.src.mopbx import main
 To test:
 
 * empty .strings files removed from file system (and pbx)
-* remove .strings files from fs where source xib not present in fs (and pbx)
+* remove .strings files from fs where source xib (or storyboard) not present in fs (and pbx)
 * rm pbx refs to files not in fs
 * clean pbx/fs not changed
 
