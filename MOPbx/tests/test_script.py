@@ -4,9 +4,8 @@ from MOPbx.src.mopbx import clean_pbx, remove_empty_translation_files, remove_tr
 """
 To test:
 
-
 * try different types of file hierarchy arrangment (will depth matter?)
-
+* just check that everything compiles after script run (compare against manual fix pbx?)
 
 how to test that project will compile after script is run???
 could pbx be read into dict or something that coule be written back to file after to avoid messy formatting tweaks?
