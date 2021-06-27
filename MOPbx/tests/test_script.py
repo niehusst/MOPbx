@@ -19,17 +19,17 @@ test_mode = True
 valid_proj = "../tests/data/ValidData/"
 valid_pbx = "../tests/data/ValidData/ExampleProj.xcodeproj/project.pbxproj"
 
-danlging_refs_proj = ""
-danlging_refs_pbx = ""
+danlging_refs_proj = "../tests/data/DanglingRefs/"
+danlging_refs_pbx = "../tests/data/DanglingRefs/ExampleProj.xcodeproj/project.pbxproj"
 
-empty_strings_proj = ""
-empty_string_pbx = ""
+empty_strings_proj = "../tests/data/EmptyStrings/"
+empty_string_pbx = "../tests/data/EmptyStrings/ExampleProj.xcodeproj/project.pbxproj"
 
-no_layout_proj = ""
-no_layout_pbx = ""
+no_layout_proj = "../tests/data/NoLayoutFile/"
+no_layout_pbx = "../tests/data/NoLayoutFile/ExampleProj.xcodeproj/project.pbxproj"
 
-last_ref_proj = ""
-last_ref_pbx = ""
+last_ref_proj = "../tests/data/DanglingRefs/"
+last_ref_pbx = "../tests/data/DanglingRefs/ExampleProj.xcodeproj/project.pbxproj"
 
 
 #>* remove .strings files from fs where source xib (or storyboard) not present in fs (and pbx)
