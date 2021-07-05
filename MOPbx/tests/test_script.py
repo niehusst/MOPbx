@@ -33,8 +33,13 @@ last_ref_pbx = "../tests/data/DanglingRefs/ExampleProj.xcodeproj/project.pbxproj
 
 #>* remove .strings files from fs where source xib (or storyboard) not present in fs (and pbx)
 def test_all_translation_files_without_source_removed():
-    res = remove_translation_files_without_source(no_layout_proj, no_layout_pbx, test_mode)
+    res = remove_translation_files_without_source(no_layout_proj, test_mode)
     assert res == ["ExampleProj/es.lproj/Main.strings"], f"List of files to remove dont match. {no_layout_proj}"
+
+
+def test_no_translation_files_removed_for_valid_proj():
+    res = remove_translation_files_without_source(valid_proj, test_mode)
+    assert res == [], f"Found translation files without source when there should be none. {valid_proj}"
 
 
 #>* clean pbx/fs not changed
@@ -51,14 +56,20 @@ def test_clean_pbx_invalid_project_with_missing_files():
     assert res == expected, f"List of refs did not contain expect refs. {danlging_refs_proj}"
 
 
-#>* empty .strings files removed from file system
-#>* fully empty .strings files + ones that have 1 space in it
-def test_remove_empty_translation_files():
-    res = remove_empty_translation_files(empty_strings_proj, empty_string_pbx, test_mode)
-    assert res == ["ExampleProj/es.lproj/Main.strings", "ExampleProj/es.lproj/LaunchScreen.strings"], f"List of files to remove dont match. {empty_strings_proj}"
-
-
 #>* removing a ref from pbx that is last element in array doesnt break compile (prev elem now has trailing comma)
 def test_last_ref_removal_compiles():
     clean_pbx(last_ref_proj, last_ref_pbx, test_mode)
+    assert False
     #TODO test proj compiles?? compare to manual fix file?
+
+
+#>* empty .strings files removed from file system
+#>* fully empty .strings files + ones that have 1 space in it
+def test_remove_present_empty_translation_files_found():
+    res = remove_empty_translation_files(empty_strings_proj, test_mode)
+    assert res == ["ExampleProj/es.lproj/Main.strings", "ExampleProj/es.lproj/LaunchScreen.strings"], f"List of files to remove dont match. {empty_strings_proj}"
+
+
+def test_remove_no_empty_translation_files_empty():
+    res = remove_empty_translation_files(valid_proj, test_mode)
+    assert res == [], f"Found empty files when there should be none. {valid_proj}"
