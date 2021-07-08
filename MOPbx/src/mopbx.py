@@ -10,6 +10,9 @@ default_pbx_path = ""
 # hard-code the path to your project root directory here for eaiser use
 default_project_root = ""
 
+pbx_file_cache = None
+filesystem_cache = None
+
 def remove_empty_translation_files(proj, dry):
     """
     Deletes empty/single-character translation (.strings) files 
@@ -22,13 +25,16 @@ def remove_empty_translation_files(proj, dry):
     print("INFO: Searching for empty .strings files...")
     to_rm = []
     #find files of size less than 2 bytes
-    ret_stream = os.popen("find . -name '*.strings' -size -2")
+    ret_stream = os.popen(f"find {proj} -name '*.strings' -size -2")
     for file in ret_stream.readlines():
-        print(file.strip())
+        f = file.strip()
+        print(f)
         if not dry:
-            os.remove(file.strip())
+            os.remove(f)
+        else:
+            to_rm.append(f)
     ret_stream.close()
-    return to_rm
+    return list(map(_remove_dup_slashes, to_rm))
 
 def remove_translation_files_without_source(proj, dry):
     """
@@ -42,8 +48,36 @@ def remove_translation_files_without_source(proj, dry):
     """
     print("INFO: Searching for unused .strings files...")
     to_rm = []
+    fs_files = _get_flattened_files(proj)
 
-    return to_rm
+    # find strings files w/o name match
+    match_layout = lambda fname: fname.split(".")[-1] == "xib" or fname.split(".")[-1] == "storyboard"
+    match_strings = lambda fname: fname.split(".")[-1] == "strings"
+    strip_extension = lambda fname: ".".join(fname.split(".")[:-1])
+    layout_fnames = set(map(strip_extension, filter(match_layout, fs_files)))
+    strings_fnames = map(strip_extension, filter(match_strings, fs_files))
+
+    for file in strings_fnames:
+        if file not in layout_fnames:
+            to_rm.append(file + ".strings")
+
+    print(f"removing: {', '.join(to_rm)}")
+    dry_ret = []
+    for file in to_rm:
+        # get the files full path so we can remove it
+        ret_stream = os.popen(f"find {proj} -name '{file}'")
+        files = ret_stream.readlines()
+        if len(files) != 1:
+            print(f"ERROR: Oops! Found more than 1 file named {file}. You decide how to fix this.")
+            print(files)
+        elif not dry:
+            os.remove(files[0].strip())
+        else:
+            dry_ret.append(files[0].strip())
+
+        ret_stream.close()
+
+    return list(map(_remove_dup_slashes, dry_ret))
 
 def clean_pbx(proj, pbx, dry):
     """
@@ -57,10 +91,20 @@ def clean_pbx(proj, pbx, dry):
     """
     print("INFO: Searching for dangling pbx references...")
     to_rm = []
-    write_target = "tmp.txt" if dry else pbx
-    # recursively(?) iterate over all files under proj directory, building a set of file names (no path prefix). 
-    # iter every file name in pbx proj and if not in set, rm that line of the file
-    return to_rm
+    pbx_files = _get_pbx_files(pbx)
+    fs_files = set(_get_flattened_files(proj))
+    write_target = "tmp.txt" if dry else pbx # TODO: overwrite pbx w/ tmp file afterward? 
+    
+    for file in pbx_files:
+        if file not in fs_files:
+            to_rm.append(file)
+
+    print(f"removing: {', '.join(to_rm)}")
+    if not dry:
+        # TODO: write new pbx that doesnt have those files
+        pass
+
+    return list(map(_remove_dup_slashes, to_rm))
 
 def main(args):
     pbx_path = args.get("pbx", "") if args.get("pbx", "") else default_pbx_path
@@ -74,6 +118,79 @@ def main(args):
     remove_empty_translation_files(project_root, dry_run)
     remove_translation_files_without_source(project_root, dry_run)
     clean_pbx(project_root, pbx_path, dry_run)
+
+
+### Helpers ###
+
+def _get_flattened_files(root_path):
+    """
+    Starting from input path, find every file in that
+    directory and all its subdirectories. Return a
+    1D list of those files. Saves result in cache
+    to save future compuation time.
+
+    root_path - String. path to start building the list from
+    @return - List[String]. list of file names under `root_path`.
+              All file names are not path prefixed
+    """
+    global filesystem_cache
+    if filesystem_cache:
+        return filesystem_cache
+    
+    # recursion helper
+    def _kernel(curr_path, lst):
+        for target in os.listdir(curr_path):
+            full_path = os.path.join(curr_path, target)
+            # dont recurse into hidden directories
+            if os.path.isdir(full_path) and target[0] != ".":
+                _kernel(full_path, lst)
+            elif os.path.isfile(full_path):
+                lst.append(target)
+
+    filesystem_cache = []
+    _kernel(root_path, filesystem_cache)
+    return filesystem_cache
+
+
+def _get_pbx_files(pbx_path):
+    """
+    Builds and returns a Set of file names that the
+    pbxproj file located at `pbx_path` contains. Saves
+    result in cache to save future computation time.
+
+    pbx_path - String. path to a valid project.pbxproj file
+    @return - Set[String]. set of file names referenced w/in
+              the project. All file names are not path prefixed.
+    """
+    global pbx_file_cache
+    if pbx_file_cache:
+        return pbx_file_cache
+
+    proj_files = set()
+    with open(pbx_path, 'r') as f:
+        pass #TODO
+
+    pbx_file_cache = proj_files
+    return pbx_file_cache
+
+def _remove_dup_slashes(path):
+    """
+    Remove duplicate slashes in the given path
+
+    path - String. a unix style path
+    @return - String. the same unix style path, but with any
+              previously repeated slashes removed.
+    """
+    new_path = []
+    prev = None
+
+    for c in path:
+        if c == prev == '/':
+            continue
+        prev = c
+        new_path.append(c)
+
+    return "".join(new_path)
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
