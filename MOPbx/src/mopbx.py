@@ -48,7 +48,7 @@ def remove_translation_files_without_source(proj, dry):
     """
     print("INFO: Searching for unused .strings files...")
     to_rm = []
-    fs_files = _get_flattened_files(proj)
+    fs_files = _get_flattened_files(proj, not dry)
 
     # find strings files w/o name match
     match_layout = lambda fname: fname.split(".")[-1] == "xib" or fname.split(".")[-1] == "storyboard"
@@ -91,8 +91,8 @@ def clean_pbx(proj, pbx, dry):
     """
     print("INFO: Searching for dangling pbx references...")
     to_rm = []
-    pbx_files = _get_pbx_files(pbx)
-    fs_files = set(_get_flattened_files(proj))
+    pbx_files = _get_pbx_files(pbx, not dry)
+    fs_files = set(_get_flattened_files(proj, not dry))
     write_target = "tmp.txt" if dry else pbx # TODO: overwrite pbx w/ tmp file afterward? 
     
     for file in pbx_files:
@@ -122,7 +122,7 @@ def main(args):
 
 ### Helpers ###
 
-def _get_flattened_files(root_path):
+def _get_flattened_files(root_path, use_cache):
     """
     Starting from input path, find every file in that
     directory and all its subdirectories. Return a
@@ -130,11 +130,12 @@ def _get_flattened_files(root_path):
     to save future compuation time.
 
     root_path - String. path to start building the list from
+    use_cache - Bool. whether or not to use cached data
     @return - List[String]. list of file names under `root_path`.
               All file names are not path prefixed
     """
     global filesystem_cache
-    if filesystem_cache:
+    if filesystem_cache and use_cache:
         return filesystem_cache
     
     # recursion helper
@@ -152,18 +153,19 @@ def _get_flattened_files(root_path):
     return filesystem_cache
 
 
-def _get_pbx_files(pbx_path):
+def _get_pbx_files(pbx_path, use_cache):
     """
     Builds and returns a Set of file names that the
     pbxproj file located at `pbx_path` contains. Saves
     result in cache to save future computation time.
 
     pbx_path - String. path to a valid project.pbxproj file
+    use_cache - Bool. whether or not to use cached data
     @return - Set[String]. set of file names referenced w/in
               the project. All file names are not path prefixed.
     """
     global pbx_file_cache
-    if pbx_file_cache:
+    if pbx_file_cache and use_cache:
         return pbx_file_cache
 
     proj_files = set()
