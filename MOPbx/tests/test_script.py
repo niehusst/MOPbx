@@ -10,6 +10,9 @@ To test:
 how to test that project will compile after script is run???
 could pbx be read into dict or something that coule be written back to file after to avoid messy formatting tweaks?
 pbx_clean dry should return string (or write local file?) that we can compare to a corresponding manually fixed pbx (stored outside the ios proj) AND not delete any files that it would have, and rather just store them in array w/o rm them
+
+
+INFO: these tests have to be run from the `tests` directory, otherwise the paths checked in the tests wont match as expected
 """
 
 # helper globals
@@ -31,10 +34,10 @@ last_ref_proj = "../tests/data/DanglingRefs/"
 last_ref_pbx = "../tests/data/DanglingRefs/ExampleProj.xcodeproj/project.pbxproj"
 
 
-#>* remove .strings files from fs where source xib (or storyboard) not present in fs (and pbx)
 def test_all_translation_files_without_source_removed():
     res = remove_translation_files_without_source(no_layout_proj, test_mode)
-    assert res == ["ExampleProj/es.lproj/Main.strings"], f"List of files to remove dont match. {no_layout_proj}"
+    expected = list(map(lambda x: no_layout_proj + x, ["ExampleProj/es.lproj/Main.strings"]))
+    assert res == expected, f"List of files to remove dont match. {no_layout_proj}"
 
 
 def test_no_translation_files_removed_for_valid_proj():
@@ -42,7 +45,6 @@ def test_no_translation_files_removed_for_valid_proj():
     assert res == [], f"Found translation files without source when there should be none. {valid_proj}"
 
 
-#>* clean pbx/fs not changed
 def test_clean_pbx_valid_project_with_no_missing_files():
     res = clean_pbx(valid_proj, valid_pbx, test_mode)
     assert res == [], f"List of refs to remove was not empty. {valid_proj}"
@@ -53,6 +55,7 @@ def test_clean_pbx_valid_project_with_no_missing_files():
 def test_clean_pbx_invalid_project_with_missing_files():
     res = clean_pbx(danlging_refs_proj, danlging_refs_pbx, test_mode)
     expected = ["ExampleProj/DetailViewController.swift", "ExampleProj/DetailViewController.xib", "ExampleProj/Content/pic4.png", "ExampleProj/Base.lproj/LaunchScreen.storyboard", "ExampleProj/es.lproj/Main.strings"]
+    expected = list(map(lambda x: danlging_refs_proj + x, expected))
     assert res == expected, f"List of refs did not contain expect refs. {danlging_refs_proj}"
 
 
@@ -63,11 +66,10 @@ def test_last_ref_removal_compiles():
     #TODO test proj compiles?? compare to manual fix file?
 
 
-#>* empty .strings files removed from file system
-#>* fully empty .strings files + ones that have 1 space in it
 def test_remove_present_empty_translation_files_found():
     res = remove_empty_translation_files(empty_strings_proj, test_mode)
-    assert res == ["ExampleProj/es.lproj/Main.strings", "ExampleProj/es.lproj/LaunchScreen.strings"], f"List of files to remove dont match. {empty_strings_proj}"
+    expected = list(map(lambda x: empty_strings_proj + x, ["ExampleProj/es.lproj/Main.strings", "ExampleProj/es.lproj/LaunchScreen.strings"]))
+    assert res == expected, f"List of files to remove dont match. {empty_strings_proj}"
 
 
 def test_remove_no_empty_translation_files_empty():
