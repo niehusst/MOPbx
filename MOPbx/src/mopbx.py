@@ -3,6 +3,7 @@
 
 import argparse
 import os
+import re
 
 
 # hard-code the path to your pbxproj file here for easier use
@@ -12,6 +13,13 @@ default_project_root = ""
 
 pbx_file_cache = None
 filesystem_cache = None
+
+section_begin_matcher = re.compile(r"Begin ([a-zA-Z]*) section")
+section_end_matcher = re.compile(r"End ([a-zA-Z]*) section")
+fname_matcher = re.compile(r"^\s*[A-Z0-9]+ \/\* ([a-zA-Z0-9]+\.[a-zA-Z0-9]+)[a-zA-Z\s]+ \*\/")
+
+groups_to_check = set(["PBXBuildGroup"]) #TODO add more
+
 
 def remove_empty_translation_files(proj, dry):
     """
@@ -93,15 +101,17 @@ def clean_pbx(proj, pbx, dry):
     dry - Bool. whether or not to actually perform operations. 
                 (Only prints actions it would take when True)
     """
+    global section_begin_matcher
+    global groups_to_check
     print("INFO: Searching for dangling pbx references...")
-    to_rm = []
+    to_rm = set()
     pbx_files = _get_pbx_files(pbx, not dry)
     fs_files = set(_get_flattened_files(proj, not dry))
     write_target_fname = "tmp_pbx.txt" 
     
     for file in pbx_files:
         if file not in fs_files:
-            to_rm.append(file)
+            to_rm.add(file)
 
     print(f"removing references: {', '.join(to_rm)}")
     if to_rm:
@@ -109,10 +119,10 @@ def clean_pbx(proj, pbx, dry):
         rfile = open(pbx, 'r')
         wfile = open(write_target_fname, 'w')
 
-        for line in rfile.readlines():
-            for dead_file in to_rm:
-                if dead_file not in line: #this alg only works for some sections. PBXVariantGroup section wont work. (only run this dead_file check code w/in sections we want?)
-                    wfile.write(line)
+        for line in rfile:
+            section = section_begin_matcher.search(line)
+            if section and section.group(0) in groups_to_check:
+                _clear_marked_files_from_section(rfile, wfile, to_rm)
 
         rfile.close()
         wfile.close()
@@ -141,6 +151,30 @@ def main(args):
 
 
 ### Helpers ###
+
+def _clear_marked_files_from_section(rfile, wfile, to_rm):
+    """
+    Given `rfile`'s pointer position is within a section of file
+    names we want to clean, write to `wfile` each line from rfile 
+    that does not contain the file name of a file from `to_rm`.
+    (i.e. removing those lines from the new clone file being built)
+    Returns when the end of the section is reached.
+
+    rfile - File. the file to read from. Should be positioned in
+            a section of interest.
+    wfile - File. the file to write valid lines to
+    to_rm - Set. set of file names to not include in `wfile`
+    """
+    global fname_matcher
+    global section_end_matcher
+    for line in rfile:
+        fname = fname_matcher.search(line)
+        if fname:
+            if fname.group(0) not in to_rm: #TODO: this alg only works for some sections. PBXVariantGroup section wont work. (only run this alg w/in sections we want?)
+                wfile.write(line)
+        elif section_end_matcher.search(line):
+            wfile.write(line)
+            return
 
 def _get_flattened_files(root_path, use_cache):
     """
@@ -185,12 +219,27 @@ def _get_pbx_files(pbx_path, use_cache):
               the project. All file names are not path prefixed.
     """
     global pbx_file_cache
+    global section_begin_matcher
+    global section_end_matcher
+    global fname_matcher
+    global groups_to_check
     if pbx_file_cache and use_cache:
         return pbx_file_cache
 
     proj_files = set()
+    section_of_interest = False
     with open(pbx_path, 'r') as f:
-        pass #TODO
+        for line in f:
+            if not section_of_interest:
+                section = section_begin_matcher.search(line)
+                if section and section.group(0) in groups_to_check:
+                    section_of_interest = True
+            else:
+                fname = fname_matcher.search(line)
+                if fname:
+                    proj_files.add(fname.group(0))
+                elif section_end_matcher.search(line):
+                    section_of_interest = False
 
     pbx_file_cache = proj_files
     return pbx_file_cache
