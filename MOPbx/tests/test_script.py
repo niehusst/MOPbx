@@ -45,7 +45,7 @@ def test_no_translation_files_removed_for_valid_proj():
     assert res == [], f"Found translation files without source when there should be none. {valid_proj}"
 
 
-def test_clean_pbx_valid_project_with_no_missing_files():
+def test_clean_pbx_no_references_removed_from_valid_proj():
     res = clean_pbx(valid_proj, valid_pbx, test_mode)
     assert res == [], f"List of refs to remove was not empty. {valid_proj}"
 
@@ -55,15 +55,15 @@ def test_clean_pbx_valid_project_with_no_missing_files():
 def test_clean_pbx_invalid_project_with_missing_files():
     res = clean_pbx(danlging_refs_proj, danlging_refs_pbx, test_mode)
     expected = ["ExampleProj/DetailViewController.swift", "ExampleProj/DetailViewController.xib", "ExampleProj/Content/pic4.png", "ExampleProj/Base.lproj/LaunchScreen.storyboard", "ExampleProj/es.lproj/Main.strings"]
-    expected = sorted(list(map(lambda x: danlging_refs_proj + x, expected)))
     assert res == expected, f"List of refs did not contain expect refs. {danlging_refs_proj}"
 
 
-#>* removing a ref from pbx that is last element in array doesnt break compile (prev elem now has trailing comma)
+#>* removing a ref from pbx that is last element in array doesnt break compile (prev elem now has trailing comma?)
+# TODO: make tests that run main on each proj and verify that each "compiles" against manual fix pbx
 def test_last_ref_removal_compiles():
     clean_pbx(last_ref_proj, last_ref_pbx, test_mode)
     assert False
-    #TODO test proj compiles?? compare to manual fix file?
+    #TODO test proj compiles; use diff on tmp file and manual fix file
 
 
 def test_remove_present_empty_translation_files_found():

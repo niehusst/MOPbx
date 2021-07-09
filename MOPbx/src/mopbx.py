@@ -22,6 +22,7 @@ def remove_empty_translation_files(proj, dry):
     dry - Bool. whether or not to actually perform operations. 
                 (Only prints actions it would take when True)
     """
+    # TODO: skip *Plist.strings
     print("INFO: Searching for empty .strings files...")
     to_rm = []
     #find files of size less than 2 bytes
@@ -46,6 +47,7 @@ def remove_translation_files_without_source(proj, dry):
     dry - Bool. whether or not to actually perform operations. 
                 (Only prints actions it would take when True)
     """
+    # TODO: skip *Plist.strings
     print("INFO: Searching for unused .strings files...")
     to_rm = []
     fs_files = _get_flattened_files(proj, not dry)
@@ -82,7 +84,9 @@ def remove_translation_files_without_source(proj, dry):
 def clean_pbx(proj, pbx, dry):
     """
     Remove any pbx references to files that are not in the project
-    file hierarchy.
+    file hierarchy. Writes new in-progress pbxproj file to a local
+    file (located at `write_target_name`) which is erased after use
+    when `dry` is False.
 
     proj - String. path to xcode project root directory
     pbx - String. path to xcode project project.pbxproj file
@@ -93,16 +97,32 @@ def clean_pbx(proj, pbx, dry):
     to_rm = []
     pbx_files = _get_pbx_files(pbx, not dry)
     fs_files = set(_get_flattened_files(proj, not dry))
-    write_target = "tmp.txt" if dry else pbx # TODO: overwrite pbx w/ tmp file afterward? 
+    write_target_fname = "tmp_pbx.txt" 
     
     for file in pbx_files:
         if file not in fs_files:
             to_rm.append(file)
 
-    print(f"removing: {', '.join(to_rm)}")
-    if not dry:
-        # TODO: write new pbx that doesnt have those files
-        pass
+    print(f"removing references: {', '.join(to_rm)}")
+    if to_rm:
+        # write new pbx to temp, skipping files to rm
+        rfile = open(pbx, 'r')
+        wfile = open(write_target_fname, 'w')
+
+        for line in rfile.readlines():
+            for dead_file in to_rm:
+                if dead_file not in line: #this alg only works for some sections. PBXVariantGroup section wont work. (only run this dead_file check code w/in sections we want?)
+                    wfile.write(line)
+
+        rfile.close()
+        wfile.close()
+
+        # copy over tmp file content to og pbx and rm tmp file
+        if not dry:
+            # TODO copy file
+            os.remove(write_target_fname)
+        else:
+            print(f"INFO: Wrote what new pbxproj file would contain to the file {write_target_fname}")
 
     return list(map(_remove_dup_slashes, to_rm))
 
