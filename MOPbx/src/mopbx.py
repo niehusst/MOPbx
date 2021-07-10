@@ -145,18 +145,20 @@ def clean_pbx(proj, pbx, dry):
             #os.remove(write_target_fname)
         else:
             print(f"INFO: Wrote what new pbxproj file would contain to {write_target_fname}")
+    else:
+        print("pbxproj file is alredy clean!")
 
     return list(to_rm)
 
 def main(args):
     pbx_path = args.get("pbx", "") if args.get("pbx", "") else default_pbx_path
     project_root = args.get("project", "") if args.get("project", "") else default_project_root
-    dry_run = args.get("dry")
+    dry_run = not args.get("not-dry")
     if not pbx_path or not project_root:
         print("ERROR: No pbx path or no project path was provided! Either hard-code them into this script or provide them as command line arguments")
         exit(1)
     if dry_run:
-        print("INFO: Running in dry-run mode. Run script with '--dry=False' to execute changes.")
+        print("INFO: Running in dry-run mode. Run script with the flag '--not-dry' to execute changes.")
     remove_empty_translation_files(project_root, dry_run)
     remove_translation_files_without_source(project_root, dry_run)
     clean_pbx(project_root, pbx_path, dry_run)
@@ -293,7 +295,7 @@ if __name__ == "__main__":
         help="Path to your project root directory. (optional if you've manually added a default path)")
     ap.add_argument("-x", "--pbx",
         help="Path to your pbxproj file (optional if you've manually added a default path)")
-    ap.add_argument("-d", "--dry", type=bool, default=True,
-        help="Dry run mode; running in this mode won't alter your files")
+    ap.add_argument("--not-dry", dest="not-dry", default=False, action="store_true",
+        help="Not dry-run mode; running with this flag WILL alter your files. Don't include it to leave your project unchanged.")
     args = vars(ap.parse_args())
     main(args)
