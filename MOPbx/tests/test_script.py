@@ -37,7 +37,7 @@ last_ref_pbx = "../tests/data/DanglingRefs/ExampleProj.xcodeproj/project.pbxproj
 def test_all_translation_files_without_source_removed():
     res = remove_translation_files_without_source(no_layout_proj, test_mode)
     expected = sorted(list(map(lambda x: no_layout_proj + x, ["ExampleProj/es.lproj/Main.strings"])))
-    assert res == expected, f"List of files to remove dont match. {no_layout_proj}"
+    assert sorted(res) == expected, f"List of files to remove dont match. {no_layout_proj}"
 
 
 def test_no_translation_files_removed_for_valid_proj():
@@ -54,8 +54,14 @@ def test_clean_pbx_no_references_removed_from_valid_proj():
 #>* all references are correctly removed completely from pbx, including translation language from xib set (file comparison to manually fix?)
 def test_clean_pbx_invalid_project_with_missing_files():
     res = clean_pbx(danlging_refs_proj, danlging_refs_pbx, test_mode)
-    expected = ["ExampleProj/DetailViewController.swift", "ExampleProj/DetailViewController.xib", "ExampleProj/Content/pic4.png", "ExampleProj/Base.lproj/LaunchScreen.storyboard", "ExampleProj/es.lproj/Main.strings"]
-    assert res == expected, f"List of refs did not contain expect refs. {danlging_refs_proj}"
+    expected = sorted([
+        "DetailViewController.swift", 
+        "DetailViewController.xib", 
+        "pic4.png", 
+        "LaunchScreen.storyboard", 
+        "Main.strings"
+    ])
+    assert sorted(res) == expected, f"List of refs did not contain expect refs. {danlging_refs_proj}"
 
 
 #>* removing a ref from pbx that is last element in array doesnt break compile (prev elem now has trailing comma?)
@@ -69,7 +75,7 @@ def test_last_ref_removal_compiles():
 def test_remove_present_empty_translation_files_found():
     res = remove_empty_translation_files(empty_strings_proj, test_mode)
     expected = sorted(list(map(lambda x: empty_strings_proj + x, ["ExampleProj/es.lproj/Main.strings", "ExampleProj/es.lproj/LaunchScreen.strings"])))
-    assert res == expected, f"List of files to remove dont match. {empty_strings_proj}"
+    assert sorted(res) == expected, f"List of files to remove dont match. {empty_strings_proj}"
 
 
 def test_remove_no_empty_translation_files_empty():

@@ -16,9 +16,12 @@ filesystem_cache = None
 
 section_begin_matcher = re.compile(r"Begin ([a-zA-Z]*) section")
 section_end_matcher = re.compile(r"End ([a-zA-Z]*) section")
-fname_matcher = re.compile(r"^\s*[A-Z0-9]+ \/\* ([a-zA-Z0-9]+\.[a-zA-Z0-9]+)[a-zA-Z\s]+ \*\/")
+fname_matcher = re.compile(r"^\s*[A-Z0-9]+ \/\* ([a-zA-Z0-9]+\.[a-zA-Z0-9]+)[a-zA-Z\s]* \*\/")
+strings_matcher = re.compile(r"^\s*[A-Z0-9]+ \/\* [a-zA-z\-]+ \*\/.*path = [a-zA-Z\-]+.lproj\/([a-zA-Z0-9\.]+);")
 
-groups_to_check = set(["PBXBuildGroup"]) #TODO add more
+groups_to_check = set(["PBXBuildFile", "PBXFileReference", "PBXGroup", "PBXResourcesBuildPhase", "PBXSourcesBuildPhase", ]) #TODO PBXVariantGroup
+# complete file names and file extensions to not remove
+to_ignore = set(["xctest", "InfoPlist.strings", "app", "Assets.xcassets"])
 
 
 def remove_empty_translation_files(proj, dry):
@@ -34,7 +37,7 @@ def remove_empty_translation_files(proj, dry):
     print("INFO: Searching for empty .strings files...")
     to_rm = []
     #find files of size less than 2 bytes
-    ret_stream = os.popen(f"find {proj} -name '*.strings' -size -2")
+    ret_stream = os.popen(f"find {proj} -name '*.strings' -size -2c")
     for file in ret_stream.readlines():
         f = file.strip()
         print(f)
@@ -103,6 +106,7 @@ def clean_pbx(proj, pbx, dry):
     """
     global section_begin_matcher
     global groups_to_check
+    global to_ignore
     print("INFO: Searching for dangling pbx references...")
     to_rm = set()
     pbx_files = _get_pbx_files(pbx, not dry)
@@ -110,7 +114,10 @@ def clean_pbx(proj, pbx, dry):
     write_target_fname = "tmp_pbx.txt" 
     
     for file in pbx_files:
-        if file not in fs_files:
+        file_ext = file.split(".")[-1]
+        # mark for removal files that aren't in the file sys and also arent 
+        # special pbx refs that should be ignored
+        if file not in fs_files and file not in to_ignore and file_ext not in to_ignore:
             to_rm.add(file)
 
     print(f"removing references: {', '.join(to_rm)}")
@@ -121,20 +128,21 @@ def clean_pbx(proj, pbx, dry):
 
         for line in rfile:
             section = section_begin_matcher.search(line)
-            if section and section.group(0) in groups_to_check:
-                _clear_marked_files_from_section(rfile, wfile, to_rm)
+            if section and section.group(1) in groups_to_check:
+                print(f"Searching section {section.group(1)}")
+                _clear_marked_files_from_section(rfile, wfile, to_rm) # TODO: wont be able to rm strings files (regex fail)
 
         rfile.close()
         wfile.close()
 
         # copy over tmp file content to og pbx and rm tmp file
         if not dry:
-            # TODO copy file
+            # TODO copy file over pbx
             os.remove(write_target_fname)
         else:
-            print(f"INFO: Wrote what new pbxproj file would contain to the file {write_target_fname}")
+            print(f"INFO: Wrote what new pbxproj file would contain to {write_target_fname}")
 
-    return list(map(_remove_dup_slashes, to_rm))
+    return list(to_rm)
 
 def main(args):
     pbx_path = args.get("pbx", "") if args.get("pbx", "") else default_pbx_path
@@ -169,8 +177,12 @@ def _clear_marked_files_from_section(rfile, wfile, to_rm):
     global section_end_matcher
     for line in rfile:
         fname = fname_matcher.search(line)
+        sname = strings_matcher.search(line)
         if fname:
-            if fname.group(0) not in to_rm: #TODO: this alg only works for some sections. PBXVariantGroup section wont work. (only run this alg w/in sections we want?)
+            if fname.group(1) not in to_rm: #TODO: this alg only works for some sections. PBXVariantGroup section wont work. (only run this alg w/in sections we want?)
+                wfile.write(line)
+        elif sname:
+            if sname.group(1) not in to_rm:
                 wfile.write(line)
         elif section_end_matcher.search(line):
             wfile.write(line)
@@ -230,14 +242,18 @@ def _get_pbx_files(pbx_path, use_cache):
     section_of_interest = False
     with open(pbx_path, 'r') as f:
         for line in f:
+            # only search for files in sections we know files are in
             if not section_of_interest:
                 section = section_begin_matcher.search(line)
-                if section and section.group(0) in groups_to_check:
+                if section and section.group(1) in groups_to_check:
                     section_of_interest = True
             else:
                 fname = fname_matcher.search(line)
+                sname = strings_matcher.search(line)
                 if fname:
-                    proj_files.add(fname.group(0))
+                    proj_files.add(fname.group(1))
+                elif sname:
+                    proj_files.add(sname.group(1))
                 elif section_end_matcher.search(line):
                     section_of_interest = False
 
