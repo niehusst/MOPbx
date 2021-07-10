@@ -129,16 +129,20 @@ def clean_pbx(proj, pbx, dry):
         for line in rfile:
             section = section_begin_matcher.search(line)
             if section and section.group(1) in groups_to_check:
-                print(f"Searching section {section.group(1)}")
-                _clear_marked_files_from_section(rfile, wfile, to_rm) # TODO: wont be able to rm strings files (regex fail)
+                # write section begin line before passing off to helper
+                wfile.write(line)
+                _clear_marked_files_from_section(rfile, wfile, to_rm)
+            else:
+                # normally write all lines we dont care about checking
+                wfile.write(line)
 
         rfile.close()
         wfile.close()
 
         # copy over tmp file content to og pbx and rm tmp file
         if not dry:
-            # TODO copy file over pbx
-            os.remove(write_target_fname)
+            os.replace(write_target_fname, pbx)
+            #os.remove(write_target_fname)
         else:
             print(f"INFO: Wrote what new pbxproj file would contain to {write_target_fname}")
 
@@ -178,14 +182,18 @@ def _clear_marked_files_from_section(rfile, wfile, to_rm):
     for line in rfile:
         fname = fname_matcher.search(line)
         sname = strings_matcher.search(line)
+        
+        # check line isnt a ref we want to remove
         if fname:
-            if fname.group(1) not in to_rm: #TODO: this alg only works for some sections. PBXVariantGroup section wont work. (only run this alg w/in sections we want?)
-                wfile.write(line)
+            if fname.group(1) in to_rm: #TODO: this alg only works for some sections. PBXVariantGroup section wont work. (only run this alg w/in sections we want?)
+                continue
         elif sname:
-            if sname.group(1) not in to_rm:
-                wfile.write(line)
-        elif section_end_matcher.search(line):
-            wfile.write(line)
+            if sname.group(1) in to_rm:
+                continue
+
+        wfile.write(line)
+
+        if section_end_matcher.search(line):
             return
 
 def _get_flattened_files(root_path, use_cache):
