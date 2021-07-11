@@ -1,6 +1,6 @@
 import os
 import pytest
-from MOPbx.src.mopbx import clean_pbx, remove_empty_translation_files, remove_translation_files_without_source
+from MOPbx.src.mopbx import main, clean_pbx, remove_empty_translation_files, remove_translation_files_without_source
 
 """
 To test:
@@ -21,24 +21,30 @@ test_mode = True
 
 valid_proj = "../tests/data/ValidData/"
 valid_pbx = "../tests/data/ValidData/ExampleProj.xcodeproj/project.pbxproj"
+valid_pbx_fix = "../tests/data/ValidData/corrected_project.pbxproj"
 
-danlging_refs_proj = "../tests/data/DanglingRefs/"
-danlging_refs_pbx = "../tests/data/DanglingRefs/ExampleProj.xcodeproj/project.pbxproj"
+dangling_refs_proj = "../tests/data/DanglingRefs/"
+dangling_refs_pbx = "../tests/data/DanglingRefs/ExampleProj.xcodeproj/project.pbxproj"
+dangling_refs_pbx_fix = "../tests/data/DanglingRefs/corrected_project.pbxproj"
 
 empty_strings_proj = "../tests/data/EmptyStrings/"
-empty_string_pbx = "../tests/data/EmptyStrings/ExampleProj.xcodeproj/project.pbxproj"
+empty_strings_pbx = "../tests/data/EmptyStrings/ExampleProj.xcodeproj/project.pbxproj"
+empty_strings_pbx_fix = "../tests/data/EmptyStrings/corrected_project.pbxproj"
 
 no_layout_proj = "../tests/data/NoLayoutFile/"
 no_layout_pbx = "../tests/data/NoLayoutFile/ExampleProj.xcodeproj/project.pbxproj"
+no_layout_pbx_fix = "../tests/data/NoLayoutFile/corrected_project.pbxproj"
 
 last_ref_proj = "../tests/data/DanglingRefs/"
 last_ref_pbx = "../tests/data/DanglingRefs/ExampleProj.xcodeproj/project.pbxproj"
+last_ref_pbx_fix = "../tests/data/DanglingRefs/corrected_project.pbxproj"
+
+tmp_fname = "tmp_pbx.txt"
 
 
 def teardown_function():
-    fname = "tmp_pbx.txt"
-    if os.path.isfile(fname):
-        os.remove(fname)
+    if os.path.isfile(tmp_fname):
+        os.remove(tmp_fname)
 
 
 def test_all_translation_files_without_source_removed():
@@ -58,7 +64,7 @@ def test_clean_pbx_no_references_removed_from_valid_proj():
 
 
 def test_clean_pbx_invalid_project_with_missing_files():
-    res = clean_pbx(danlging_refs_proj, danlging_refs_pbx, test_mode)
+    res = clean_pbx(dangling_refs_proj, dangling_refs_pbx, test_mode)
     expected = sorted([
         "DetailViewController.swift", 
         "DetailViewController.xib", 
@@ -66,14 +72,27 @@ def test_clean_pbx_invalid_project_with_missing_files():
         "LaunchScreen.storyboard", 
         "Main.strings"
     ])
-    assert sorted(res) == expected, f"List of refs did not contain expect refs. {danlging_refs_proj}"
+    assert sorted(res) == expected, f"List of refs did not contain expect refs. {dangling_refs_proj}"
 
 
-# TODO: make tests that run main on each proj and verify that each "compiles" against manual fix pbx
-def test__compiles():
-    clean_pbx(last_ref_proj, last_ref_pbx, test_mode)
-    assert False
-    #TODO test proj compiles; use diff on tmp file and manual fix file
+def test_valid_compiles():
+    main({"project": valid_proj, "pbx": valid_pbx, "not-dry": False})
+    assert os.system(f"diff {tmp_fname} {valid_pbx_fix}") == 0
+
+
+def test_no_layout_compiles():
+    main({"project": no_layout_proj, "pbx": no_layout_pbx, "not-dry": False})
+    assert os.system(f"diff {tmp_fname} {no_layout_pbx_fix}") == 0
+
+
+def test_dangling_refs_compiles():
+    main({"project": dangling_refs_proj, "pbx": dangling_refs_pbx, "not-dry": False})
+    assert os.system(f"diff {tmp_fname} {dangling_refs_pbx_fix}") == 0
+
+
+def test_empty_strings_compiles():
+    main({"project": empty_strings_proj, "pbx": empty_strings_pbx, "not-dry": False})
+    assert os.system(f"diff {tmp_fname} {empty_strings_pbx_fix}") == 0
 
 
 def test_remove_present_empty_translation_files_found():
