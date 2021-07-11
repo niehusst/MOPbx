@@ -19,7 +19,7 @@ section_end_matcher = re.compile(r"End ([a-zA-Z]*) section")
 fname_matcher = re.compile(r"^\s*[A-Z0-9]+ \/\* ([a-zA-Z0-9]+\.[a-zA-Z0-9]+)[a-zA-Z\s]* \*\/")
 strings_matcher = re.compile(r"^\s*[A-Z0-9]+ \/\* [a-zA-z\-]+ \*\/.*path = [a-zA-Z\-]+.lproj\/([a-zA-Z0-9\.]+);")
 
-groups_to_check = set(["PBXBuildFile", "PBXFileReference", "PBXGroup", "PBXResourcesBuildPhase", "PBXSourcesBuildPhase", ]) #TODO PBXVariantGroup
+groups_to_check = set(["PBXBuildFile", "PBXFileReference", "PBXGroup", "PBXResourcesBuildPhase", "PBXSourcesBuildPhase", "PBXVariantGroup"])
 # complete file names and file extensions to not remove
 to_ignore = set(["xctest", "InfoPlist.strings", "app", "Assets.xcassets"])
 
@@ -74,7 +74,7 @@ def remove_translation_files_without_source(proj, dry):
         if file not in layout_fnames:
             to_rm.append(file + ".strings")
 
-    print(f"removing: {', '.join(to_rm)}")
+    print(f"removing: {', '.join(to_rm) if to_rm else 'No files'}")
     dry_ret = []
     for file in to_rm:
         # get the files full path so we can remove it
@@ -120,7 +120,7 @@ def clean_pbx(proj, pbx, dry):
         if file not in fs_files and file not in to_ignore and file_ext not in to_ignore:
             to_rm.add(file)
 
-    print(f"removing references: {', '.join(to_rm)}")
+    print(f"removing references: {', '.join(to_rm) if to_rm else 'No files'}")
     if to_rm:
         # write new pbx to temp, skipping files to rm
         rfile = open(pbx, 'r')
@@ -131,7 +131,7 @@ def clean_pbx(proj, pbx, dry):
             if section and section.group(1) in groups_to_check:
                 # write section begin line before passing off to helper
                 wfile.write(line)
-                _clear_marked_files_from_section(rfile, wfile, to_rm)
+                _clear_marked_files_from_section(section.group(1), rfile, wfile, to_rm)
             else:
                 # normally write all lines we dont care about checking
                 wfile.write(line)
@@ -142,7 +142,6 @@ def clean_pbx(proj, pbx, dry):
         # copy over tmp file content to og pbx and rm tmp file
         if not dry:
             os.replace(write_target_fname, pbx)
-            #os.remove(write_target_fname)
         else:
             print(f"INFO: Wrote what new pbxproj file would contain to {write_target_fname}")
     else:
@@ -166,7 +165,7 @@ def main(args):
 
 ### Helpers ###
 
-def _clear_marked_files_from_section(rfile, wfile, to_rm):
+def _clear_marked_files_from_section(section, rfile, wfile, to_rm):
     """
     Given `rfile`'s pointer position is within a section of file
     names we want to clean, write to `wfile` each line from rfile 
@@ -181,13 +180,21 @@ def _clear_marked_files_from_section(rfile, wfile, to_rm):
     """
     global fname_matcher
     global section_end_matcher
-    for line in rfile:
+    while True:
+        line = rfile.readline()
+        if not line:
+            return
+
         fname = fname_matcher.search(line)
         sname = strings_matcher.search(line)
         
         # check line isnt a ref we want to remove
         if fname:
-            if fname.group(1) in to_rm: #TODO: this alg only works for some sections. PBXVariantGroup section wont work. (only run this alg w/in sections we want?)
+            if fname.group(1) in to_rm:
+                if section == "PBXVariantGroup":
+                    # consume lines until end of translation file object is reached
+                    while line.strip() != "};":
+                        line = rfile.readline()
                 continue
         elif sname:
             if sname.group(1) in to_rm:
