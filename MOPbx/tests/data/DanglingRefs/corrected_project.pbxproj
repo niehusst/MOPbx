@@ -17,8 +17,6 @@
 		CDC4008525B77C5E003840FD /* pic1.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CDC4008225B77C5E003840FD /* pic1.jpg */; };
 		CDC4008625B77C5E003840FD /* pic3.png in Resources */ = {isa = PBXBuildFile; fileRef = CDC4008325B77C5E003840FD /* pic3.png */; };
 		CDC4008725B77C5E003840FD /* pic2.jpg in Resources */ = {isa = PBXBuildFile; fileRef = CDC4008425B77C5E003840FD /* pic2.jpg */; };
-		CDC4008B25B7CEDD003840FD /* DetailViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = CDC4008925B7CEDD003840FD /* DetailViewController.xib */; };
-		CDC4008D25B7E398003840FD /* pic4.png in Resources */ = {isa = PBXBuildFile; fileRef = CDC4008C25B7E398003840FD /* pic4.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -45,7 +43,6 @@
 		CDC4005525B77AF6003840FD /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		CDC4005825B77AF6003840FD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		CDC4005A25B77AFA003840FD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		CDC4005D25B77AFA003840FD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		CDC4005F25B77AFA003840FD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		CDC4006425B77AFB003840FD /* ExampleProjTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = ExampleProjTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		CDC4006825B77AFB003840FD /* ExampleProjTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExampleProjTests.swift; sourceTree = "<group>"; };
@@ -56,8 +53,6 @@
 		CDC4008225B77C5E003840FD /* pic1.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = pic1.jpg; sourceTree = "<group>"; };
 		CDC4008325B77C5E003840FD /* pic3.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pic3.png; sourceTree = "<group>"; };
 		CDC4008425B77C5E003840FD /* pic2.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = pic2.jpg; sourceTree = "<group>"; };
-		CDC4008825B7CEDD003840FD /* DetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
-		CDD613C02660AF1000DD9C7D /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -112,10 +107,7 @@
 				CDC4005325B77AF6003840FD /* SceneDelegate.swift */,
 				CDC4005525B77AF6003840FD /* ViewController.swift */,
 				CDC4005725B77AF6003840FD /* Main.storyboard */,
-				CDC4008825B7CEDD003840FD /* DetailViewController.swift */,
-				CDC4008925B7CEDD003840FD /* DetailViewController.xib */,
 				CDC4005A25B77AFA003840FD /* Assets.xcassets */,
-				CDC4005C25B77AFA003840FD /* LaunchScreen.storyboard */,
 				CDC4005F25B77AFA003840FD /* Info.plist */,
 				CDC4008125B77C5E003840FD /* Content */,
 			);
@@ -146,7 +138,6 @@
 				CDC4008225B77C5E003840FD /* pic1.jpg */,
 				CDC4008425B77C5E003840FD /* pic2.jpg */,
 				CDC4008325B77C5E003840FD /* pic3.png */,
-				CDC4008C25B7E398003840FD /* pic4.png */,
 			);
 			path = Content;
 			sourceTree = "<group>";
@@ -258,10 +249,7 @@
 			files = (
 				CDC4008525B77C5E003840FD /* pic1.jpg in Resources */,
 				CDC4008725B77C5E003840FD /* pic2.jpg in Resources */,
-				CDC4008B25B7CEDD003840FD /* DetailViewController.xib in Resources */,
-				CDC4008D25B7E398003840FD /* pic4.png in Resources */,
 				CDC4008625B77C5E003840FD /* pic3.png in Resources */,
-				CDC4005E25B77AFA003840FD /* LaunchScreen.storyboard in Resources */,
 				CDC4005B25B77AFA003840FD /* Assets.xcassets in Resources */,
 				CDC4005925B77AF6003840FD /* Main.storyboard in Resources */,
 			);
@@ -291,7 +279,6 @@
 				CDC4005625B77AF6003840FD /* ViewController.swift in Sources */,
 				CDC4005225B77AF6003840FD /* AppDelegate.swift in Sources */,
 				CDC4005425B77AF6003840FD /* SceneDelegate.swift in Sources */,
-				CDC4008A25B7CEDD003840FD /* DetailViewController.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
