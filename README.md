@@ -25,7 +25,8 @@ These dependencies are to assist with testing.
 ## Testing
 
 This repo uses `pytest`, so to run all tests, you can simply run in you
-terminal the following command (after doing the setup process):
+terminal the following command (after doing the setup process) FROM WITHIN
+THE `MOPbx/tests/` DIRECTORY:
 ```
 pytest
 ```

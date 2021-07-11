@@ -20,5 +20,5 @@ jobs:
           # pip-dependency-file: test-requirements.txt  # if you have a different name for your requirements file, maybe one that combines your runtime and test requirements.
       - run:
           name: Run tests
-          command: pytest
+          command: cd MOPbx/tests; pytest -vv
 
