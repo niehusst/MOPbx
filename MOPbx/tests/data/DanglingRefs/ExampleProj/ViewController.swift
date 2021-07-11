@@ -43,23 +43,7 @@ class ViewController: UITableViewController {
     }
     
     override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        guard
-            let detail = storyboard?.instantiateViewController(
-                withIdentifier: "Detail") as? DetailViewController
-        else { return }
-        
-        // set image name
-        detail.imageName = pics[indexPath.row]
-        detail.imageIndex = indexPath.row
-        detail.totalQuant = pics.count
-        // nave to new vc
-        navigationItem.backBarButtonItem = UIBarButtonItem(
-                title: "Back",
-                style: UIBarButtonItem.Style.plain,
-                target: nil,
-                action: nil)
-        navigationController?.pushViewController(detail, animated: true)
-        
+        print("hello world")
     }
     
     @IBAction func shareButtonClicked(_ sender: Any) {
