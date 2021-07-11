@@ -10,7 +10,6 @@
 		CDC4005225B77AF6003840FD /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC4005125B77AF6003840FD /* AppDelegate.swift */; };
 		CDC4005425B77AF6003840FD /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC4005325B77AF6003840FD /* SceneDelegate.swift */; };
 		CDC4005625B77AF6003840FD /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC4005525B77AF6003840FD /* ViewController.swift */; };
-		CDC4005925B77AF6003840FD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CDC4005725B77AF6003840FD /* Main.storyboard */; };
 		CDC4005B25B77AFA003840FD /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = CDC4005A25B77AFA003840FD /* Assets.xcassets */; };
 		CDC4005E25B77AFA003840FD /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = CDC4005C25B77AFA003840FD /* LaunchScreen.storyboard */; };
 		CDC4006925B77AFB003840FD /* ExampleProjTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = CDC4006825B77AFB003840FD /* ExampleProjTests.swift */; };
@@ -45,7 +44,6 @@
 		CDC4005125B77AF6003840FD /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		CDC4005325B77AF6003840FD /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
 		CDC4005525B77AF6003840FD /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
-		CDC4005825B77AF6003840FD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		CDC4005A25B77AFA003840FD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		CDC4005D25B77AFA003840FD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		CDC4005F25B77AFA003840FD /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -61,7 +59,6 @@
 		CDC4008825B7CEDD003840FD /* DetailViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailViewController.swift; sourceTree = "<group>"; };
 		CDC4008925B7CEDD003840FD /* DetailViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = DetailViewController.xib; sourceTree = "<group>"; };
 		CDC4008C25B7E398003840FD /* pic4.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pic4.png; sourceTree = "<group>"; };
-		CDD613BF2660AF1000DD9C7D /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/Main.strings; sourceTree = "<group>"; };
 		CDD613C02660AF1000DD9C7D /* es */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = es; path = es.lproj/LaunchScreen.strings; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -116,7 +113,6 @@
 				CDC4005125B77AF6003840FD /* AppDelegate.swift */,
 				CDC4005325B77AF6003840FD /* SceneDelegate.swift */,
 				CDC4005525B77AF6003840FD /* ViewController.swift */,
-				CDC4005725B77AF6003840FD /* Main.storyboard */,
 				CDC4008825B7CEDD003840FD /* DetailViewController.swift */,
 				CDC4008925B7CEDD003840FD /* DetailViewController.xib */,
 				CDC4005A25B77AFA003840FD /* Assets.xcassets */,
@@ -268,7 +264,6 @@
 				CDC4008625B77C5E003840FD /* pic3.png in Resources */,
 				CDC4005E25B77AFA003840FD /* LaunchScreen.storyboard in Resources */,
 				CDC4005B25B77AFA003840FD /* Assets.xcassets in Resources */,
-				CDC4005925B77AF6003840FD /* Main.storyboard in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -332,15 +327,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
-		CDC4005725B77AF6003840FD /* Main.storyboard */ = {
-			isa = PBXVariantGroup;
-			children = (
-				CDC4005825B77AF6003840FD /* Base */,
-				CDD613BF2660AF1000DD9C7D /* es */,
-			);
-			name = Main.storyboard;
-			sourceTree = "<group>";
-		};
 		CDC4005C25B77AFA003840FD /* LaunchScreen.storyboard */ = {
 			isa = PBXVariantGroup;
 			children = (
