@@ -1,3 +1,4 @@
+import os
 import pytest
 from MOPbx.src.mopbx import clean_pbx, remove_empty_translation_files, remove_translation_files_without_source
 
@@ -34,6 +35,12 @@ last_ref_proj = "../tests/data/DanglingRefs/"
 last_ref_pbx = "../tests/data/DanglingRefs/ExampleProj.xcodeproj/project.pbxproj"
 
 
+def teardown_function():
+    fname = "tmp_pbx.txt"
+    if os.path.isfile(fname):
+        os.remove(fname)
+
+
 def test_all_translation_files_without_source_removed():
     res = remove_translation_files_without_source(no_layout_proj, test_mode)
     expected = sorted(list(map(lambda x: no_layout_proj + x, ["ExampleProj/es.lproj/Main.strings"])))
@@ -50,8 +57,6 @@ def test_clean_pbx_no_references_removed_from_valid_proj():
     assert res == [], f"List of refs to remove was not empty. {valid_proj}"
 
 
-#>* xibs, storyboards, swift, and strings files not in fs all get rm from pbx
-#>* all references are correctly removed completely from pbx, including translation language from xib set (file comparison to manually fix?)
 def test_clean_pbx_invalid_project_with_missing_files():
     res = clean_pbx(danlging_refs_proj, danlging_refs_pbx, test_mode)
     expected = sorted([
@@ -64,9 +69,8 @@ def test_clean_pbx_invalid_project_with_missing_files():
     assert sorted(res) == expected, f"List of refs did not contain expect refs. {danlging_refs_proj}"
 
 
-#>* removing a ref from pbx that is last element in array doesnt break compile (prev elem now has trailing comma?)
 # TODO: make tests that run main on each proj and verify that each "compiles" against manual fix pbx
-def test_last_ref_removal_compiles():
+def test__compiles():
     clean_pbx(last_ref_proj, last_ref_pbx, test_mode)
     assert False
     #TODO test proj compiles; use diff on tmp file and manual fix file
