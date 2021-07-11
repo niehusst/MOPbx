@@ -1,18 +1,8 @@
 import os
 import pytest
-from MOPbx.src.mopbx import main, clean_pbx, remove_empty_translation_files, remove_translation_files_without_source
+from MOPbx.src.mopbx import main, clean_pbx, remove_empty_translation_files, remove_translation_files_without_source, _reset_caches
 
 """
-To test:
-
-* try different types of file hierarchy arrangment (will depth matter?)
-* just check that everything compiles after script run (compare against manual fix pbx?)
-
-how to test that project will compile after script is run???
-could pbx be read into dict or something that coule be written back to file after to avoid messy formatting tweaks?
-pbx_clean dry should return string (or write local file?) that we can compare to a corresponding manually fixed pbx (stored outside the ios proj) AND not delete any files that it would have, and rather just store them in array w/o rm them
-
-
 INFO: these tests have to be run from the `tests` directory, otherwise the paths checked in the tests wont match as expected
 """
 
@@ -40,6 +30,10 @@ last_ref_pbx = "../tests/data/DanglingRefs/ExampleProj.xcodeproj/project.pbxproj
 last_ref_pbx_fix = "../tests/data/DanglingRefs/corrected_project.pbxproj"
 
 tmp_fname = "tmp_pbx.txt"
+
+
+def setup_function():
+    _reset_caches()
 
 
 def teardown_function():
