@@ -75,6 +75,17 @@ def test_clean_pbx_invalid_project_with_missing_files():
     assert sorted(res) == expected, f"List of refs did not contain expect refs. {dangling_refs_proj}"
 
 
+def test_remove_present_empty_translation_files_found():
+    res = remove_empty_translation_files(empty_strings_proj, test_mode)
+    expected = sorted(list(map(lambda x: empty_strings_proj + x, ["ExampleProj/es.lproj/Main.strings", "ExampleProj/es.lproj/LaunchScreen.strings"])))
+    assert sorted(res) == expected, f"List of files to remove dont match. {empty_strings_proj}"
+
+
+def test_remove_no_empty_translation_files_empty():
+    res = remove_empty_translation_files(valid_proj, test_mode)
+    assert res == [], f"Found empty files when there should be none. {valid_proj}"
+
+
 def test_valid_compiles():
     main({"project": valid_proj, "pbx": valid_pbx, "not-dry": False})
     assert os.system(f"diff {tmp_fname} {valid_pbx_fix}") == 0
@@ -94,13 +105,3 @@ def test_empty_strings_compiles():
     main({"project": empty_strings_proj, "pbx": empty_strings_pbx, "not-dry": False})
     assert os.system(f"diff {tmp_fname} {empty_strings_pbx_fix}") == 0
 
-
-def test_remove_present_empty_translation_files_found():
-    res = remove_empty_translation_files(empty_strings_proj, test_mode)
-    expected = sorted(list(map(lambda x: empty_strings_proj + x, ["ExampleProj/es.lproj/Main.strings", "ExampleProj/es.lproj/LaunchScreen.strings"])))
-    assert sorted(res) == expected, f"List of files to remove dont match. {empty_strings_proj}"
-
-
-def test_remove_no_empty_translation_files_empty():
-    res = remove_empty_translation_files(valid_proj, test_mode)
-    assert res == [], f"Found empty files when there should be none. {valid_proj}"

@@ -37,18 +37,23 @@ def remove_empty_translation_files(proj, dry):
     to_rm = []
     #find files of size less than 2 bytes
     ret_stream = os.popen(f"find {proj} -name '*.strings' -size -2c")
-    for file in ret_stream.readlines():
-        f = file.strip()
+    for fname in ret_stream.readlines():
+        f = fname.strip()
         if _should_ignore(f):
             continue
 
         print(f)
+        to_rm.append(f)
+
         if not dry:
             os.remove(f)
-        else:
-            to_rm.append(f)
 
     ret_stream.close()
+    if to_rm:
+        # invalidate fs cache
+        global filesystem_cache
+        filesystem_cache = None
+
     return list(map(_remove_dup_slashes, to_rm))
 
 
@@ -73,26 +78,31 @@ def remove_translation_files_without_source(proj, dry):
     layout_fnames = set(map(strip_extension, filter(match_layout, fs_files)))
     strings_fnames = map(strip_extension, filter(match_strings, fs_files))
 
-    for file in strings_fnames:
-        file_with_ext = file + ".strings"
-        if file not in layout_fnames and not _should_ignore(file_with_ext):
+    for fname in strings_fnames:
+        file_with_ext = fname + ".strings"
+        if fname not in layout_fnames and not _should_ignore(file_with_ext):
             to_rm.append(file_with_ext)
 
     print(f"removing: {', '.join(to_rm) if to_rm else 'No files'}")
     dry_ret = []
-    for file in to_rm:
+    for fname in to_rm:
         # get the files full path so we can remove it
-        ret_stream = os.popen(f"find {proj} -name '{file}'")
+        ret_stream = os.popen(f"find {proj} -name '{fname}'")
         files = ret_stream.readlines()
         if len(files) != 1:
             print(f"ERROR: Oops! Found more than 1 file named {file}. You decide how to fix this.")
             print(files)
-        elif not dry:
-            os.remove(files[0].strip())
         else:
+            if not dry:
+                os.remove(files[0].strip())
             dry_ret.append(files[0].strip())
 
         ret_stream.close()
+
+    if dry_ret:
+        # invalidate fs cache
+        global filesystem_cache
+        filesystem_cache = None
 
     return list(map(_remove_dup_slashes, dry_ret))
 
@@ -124,7 +134,7 @@ def clean_pbx(proj, pbx, dry):
             to_rm.add(file)
 
     print(f"removing references: {', '.join(to_rm) if to_rm else 'No files'}")
-    if to_rm:
+    if to_rm or dry:
         # write new pbx to temp, skipping files to rm
         rfile = open(pbx, 'r')
         wfile = open(write_target_fname, 'w')
