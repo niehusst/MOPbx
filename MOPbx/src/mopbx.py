@@ -33,20 +33,24 @@ def remove_empty_translation_files(proj, dry):
     dry - Bool. whether or not to actually perform operations. 
                 (Only prints actions it would take when True)
     """
-    # TODO: skip *Plist.strings
     print("INFO: Searching for empty .strings files...")
     to_rm = []
     #find files of size less than 2 bytes
     ret_stream = os.popen(f"find {proj} -name '*.strings' -size -2c")
     for file in ret_stream.readlines():
         f = file.strip()
+        if _should_ignore(f):
+            continue
+
         print(f)
         if not dry:
             os.remove(f)
         else:
             to_rm.append(f)
+
     ret_stream.close()
     return list(map(_remove_dup_slashes, to_rm))
+
 
 def remove_translation_files_without_source(proj, dry):
     """
@@ -58,7 +62,6 @@ def remove_translation_files_without_source(proj, dry):
     dry - Bool. whether or not to actually perform operations. 
                 (Only prints actions it would take when True)
     """
-    # TODO: skip *Plist.strings
     print("INFO: Searching for unused .strings files...")
     to_rm = []
     fs_files = _get_flattened_files(proj, not dry)
@@ -71,8 +74,9 @@ def remove_translation_files_without_source(proj, dry):
     strings_fnames = map(strip_extension, filter(match_strings, fs_files))
 
     for file in strings_fnames:
-        if file not in layout_fnames:
-            to_rm.append(file + ".strings")
+        file_with_ext = file + ".strings"
+        if file not in layout_fnames and not _should_ignore(file_with_ext):
+            to_rm.append(file_with_ext)
 
     print(f"removing: {', '.join(to_rm) if to_rm else 'No files'}")
     dry_ret = []
@@ -92,6 +96,7 @@ def remove_translation_files_without_source(proj, dry):
 
     return list(map(_remove_dup_slashes, dry_ret))
 
+
 def clean_pbx(proj, pbx, dry):
     """
     Remove any pbx references to files that are not in the project
@@ -106,7 +111,6 @@ def clean_pbx(proj, pbx, dry):
     """
     global section_begin_matcher
     global groups_to_check
-    global to_ignore
     print("INFO: Searching for dangling pbx references...")
     to_rm = set()
     pbx_files = _get_pbx_files(pbx, not dry)
@@ -114,10 +118,9 @@ def clean_pbx(proj, pbx, dry):
     write_target_fname = "tmp_pbx.txt" 
     
     for file in pbx_files:
-        file_ext = file.split(".")[-1]
         # mark for removal files that aren't in the file sys and also arent 
         # special pbx refs that should be ignored
-        if file not in fs_files and file not in to_ignore and file_ext not in to_ignore:
+        if file not in fs_files and not _should_ignore(file):
             to_rm.add(file)
 
     print(f"removing references: {', '.join(to_rm) if to_rm else 'No files'}")
@@ -148,6 +151,7 @@ def clean_pbx(proj, pbx, dry):
         print("pbxproj file is alredy clean!")
 
     return list(to_rm)
+
 
 def main(args):
     pbx_path = args.get("pbx", "") if args.get("pbx", "") else default_pbx_path
@@ -204,6 +208,22 @@ def _clear_marked_files_from_section(section, rfile, wfile, to_rm):
 
         if section_end_matcher.search(line):
             return
+
+
+def _should_ignore(file_path):
+    """
+    Returns whether or not the file at the input path should
+    be ignored by this script. (Mostly for files in pbx that have
+    no physical representation in the file system.) 
+
+    file_path - String. path to file to check. Assumes Unix style path.
+    @return - Bool. whether the file should be ignored or not
+    """
+    global to_ignore
+    fname = file_path.split("/")[-1]
+    file_ext = fname.split(".")[-1]
+    return fname in to_ignore or file_ext in to_ignore
+
 
 def _get_flattened_files(root_path, use_cache):
     """
@@ -277,9 +297,11 @@ def _get_pbx_files(pbx_path, use_cache):
     pbx_file_cache = proj_files
     return pbx_file_cache
 
+
 def _remove_dup_slashes(path):
     """
-    Remove duplicate slashes in the given path
+    Remove duplicate slashes in the given path. Mostly for
+    cleaning return values for testing function output.
 
     path - String. a unix style path
     @return - String. the same unix style path, but with any
@@ -295,6 +317,7 @@ def _remove_dup_slashes(path):
         new_path.append(c)
 
     return "".join(new_path)
+
 
 if __name__ == "__main__":
     ap = argparse.ArgumentParser()
