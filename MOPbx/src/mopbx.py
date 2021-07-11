@@ -148,7 +148,7 @@ def clean_pbx(proj, pbx, dry):
         else:
             print(f"INFO: Wrote what new pbxproj file would contain to {write_target_fname}")
     else:
-        print("pbxproj file is alredy clean!")
+        print("pbxproj file is already clean!")
 
     return list(to_rm)
 
