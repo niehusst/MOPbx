@@ -120,8 +120,7 @@ def clean_pbx(proj, pbx, dry):
     pbx_files = _get_pbx_files(pbx)
     fs_files = set(_get_flattened_files(proj))
     write_target_fname = "tmp_pbx.txt" 
-    print(pbx_files)
-    print(fs_files)
+
     for fname in pbx_files:
         # mark for removal files that aren't in the file sys and also arent 
         # special pbx refs that should be ignored
