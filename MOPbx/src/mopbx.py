@@ -37,18 +37,20 @@ def remove_empty_translation_files(proj, dry):
     to_rm = []
     #find files of size less than 2 bytes
     ret_stream = os.popen(f"find {proj} -name '*.strings' -size -2c")
-    for file in ret_stream.readlines():
-        f = file.strip()
+    for fname in ret_stream.readlines():
+        f = fname.strip()
         if _should_ignore(f):
             continue
 
         print(f)
+        to_rm.append(f)
+
         if not dry:
             os.remove(f)
-        else:
-            to_rm.append(f)
 
     ret_stream.close()
+    _update_fs_cache(to_rm)
+
     return list(map(_remove_dup_slashes, to_rm))
 
 
@@ -64,7 +66,7 @@ def remove_translation_files_without_source(proj, dry):
     """
     print("INFO: Searching for unused .strings files...")
     to_rm = []
-    fs_files = _get_flattened_files(proj, not dry)
+    fs_files = _get_flattened_files(proj)
 
     # find strings files w/o name match
     match_layout = lambda fname: fname.split(".")[-1] == "xib" or fname.split(".")[-1] == "storyboard"
@@ -73,26 +75,28 @@ def remove_translation_files_without_source(proj, dry):
     layout_fnames = set(map(strip_extension, filter(match_layout, fs_files)))
     strings_fnames = map(strip_extension, filter(match_strings, fs_files))
 
-    for file in strings_fnames:
-        file_with_ext = file + ".strings"
-        if file not in layout_fnames and not _should_ignore(file_with_ext):
+    for fname in strings_fnames:
+        file_with_ext = fname + ".strings"
+        if fname not in layout_fnames and not _should_ignore(file_with_ext):
             to_rm.append(file_with_ext)
 
     print(f"removing: {', '.join(to_rm) if to_rm else 'No files'}")
     dry_ret = []
-    for file in to_rm:
+    for fname in to_rm:
         # get the files full path so we can remove it
-        ret_stream = os.popen(f"find {proj} -name '{file}'")
+        ret_stream = os.popen(f"find {proj} -name '{fname}'")
         files = ret_stream.readlines()
         if len(files) != 1:
             print(f"ERROR: Oops! Found more than 1 file named {file}. You decide how to fix this.")
             print(files)
-        elif not dry:
-            os.remove(files[0].strip())
         else:
+            if not dry:
+                os.remove(files[0].strip())
             dry_ret.append(files[0].strip())
 
         ret_stream.close()
+
+    _update_fs_cache(dry_ret)
 
     return list(map(_remove_dup_slashes, dry_ret))
 
@@ -113,18 +117,18 @@ def clean_pbx(proj, pbx, dry):
     global groups_to_check
     print("INFO: Searching for dangling pbx references...")
     to_rm = set()
-    pbx_files = _get_pbx_files(pbx, not dry)
-    fs_files = set(_get_flattened_files(proj, not dry))
+    pbx_files = _get_pbx_files(pbx)
+    fs_files = set(_get_flattened_files(proj))
     write_target_fname = "tmp_pbx.txt" 
-    
-    for file in pbx_files:
+
+    for fname in pbx_files:
         # mark for removal files that aren't in the file sys and also arent 
         # special pbx refs that should be ignored
-        if file not in fs_files and not _should_ignore(file):
-            to_rm.add(file)
+        if fname not in fs_files and not _should_ignore(fname):
+            to_rm.add(fname)
 
     print(f"removing references: {', '.join(to_rm) if to_rm else 'No files'}")
-    if to_rm:
+    if to_rm or dry:
         # write new pbx to temp, skipping files to rm
         rfile = open(pbx, 'r')
         wfile = open(write_target_fname, 'w')
@@ -162,12 +166,39 @@ def main(args):
         exit(1)
     if dry_run:
         print("INFO: Running in dry-run mode. Run script with the flag '--not-dry' to execute changes.")
+
+    # pre-compute flat fs and pbx files
+    _get_flattened_files(project_root)
+    _get_pbx_files(pbx_path)
+
+    # clean it!
     remove_empty_translation_files(project_root, dry_run)
     remove_translation_files_without_source(project_root, dry_run)
     clean_pbx(project_root, pbx_path, dry_run)
 
 
 ### Helpers ###
+
+
+def _update_fs_cache(to_rm):
+    """
+    Update cached list of files in the file system, removing
+    file names from our cache that have been removed by the
+    script. Alters the global variable `filesystem_cache`.
+
+    to_rm - List[String]. list of file names. May include path prefix
+    """
+    global filesystem_cache
+    if not to_rm or not filesystem_cache:
+        return
+
+    fs_set = set(filesystem_cache)
+    # remove path prefix on files if there is one
+    rm_set = set(list(map(lambda fpath: fpath.split("/")[-1], to_rm)))
+
+    filesystem_cache = list(fs_set - rm_set)
+    print(f"updated cache to not include {fs_set - (fs_set - rm_set)}")
+
 
 def _clear_marked_files_from_section(section, rfile, wfile, to_rm):
     """
@@ -225,7 +256,7 @@ def _should_ignore(file_path):
     return fname in to_ignore or file_ext in to_ignore
 
 
-def _get_flattened_files(root_path, use_cache):
+def _get_flattened_files(root_path):
     """
     Starting from input path, find every file in that
     directory and all its subdirectories. Return a
@@ -233,12 +264,11 @@ def _get_flattened_files(root_path, use_cache):
     to save future compuation time.
 
     root_path - String. path to start building the list from
-    use_cache - Bool. whether or not to use cached data
     @return - List[String]. list of file names under `root_path`.
               All file names are not path prefixed
     """
     global filesystem_cache
-    if filesystem_cache and use_cache:
+    if filesystem_cache:
         return filesystem_cache
     
     # recursion helper
@@ -256,14 +286,13 @@ def _get_flattened_files(root_path, use_cache):
     return filesystem_cache
 
 
-def _get_pbx_files(pbx_path, use_cache):
+def _get_pbx_files(pbx_path):
     """
     Builds and returns a Set of file names that the
     pbxproj file located at `pbx_path` contains. Saves
     result in cache to save future computation time.
 
     pbx_path - String. path to a valid project.pbxproj file
-    use_cache - Bool. whether or not to use cached data
     @return - Set[String]. set of file names referenced w/in
               the project. All file names are not path prefixed.
     """
@@ -272,7 +301,7 @@ def _get_pbx_files(pbx_path, use_cache):
     global section_end_matcher
     global fname_matcher
     global groups_to_check
-    if pbx_file_cache and use_cache:
+    if pbx_file_cache:
         return pbx_file_cache
 
     proj_files = set()
@@ -317,6 +346,17 @@ def _remove_dup_slashes(path):
         new_path.append(c)
 
     return "".join(new_path)
+
+
+def _reset_caches():
+    """
+    Resets the filesystem and pbx caches to `None`. Only
+    for testing purposes.
+    """
+    global filesystem_cache
+    global pbx_file_cache
+    filesystem_cache = None
+    pbx_file_cache = None
 
 
 if __name__ == "__main__":
