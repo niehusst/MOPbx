@@ -82,20 +82,20 @@ def test_remove_no_empty_translation_files_empty():
 
 def test_valid_compiles():
     main({"project": valid_proj, "pbx": valid_pbx, "not-dry": False})
-    assert os.system(f"diff {tmp_fname} {valid_pbx_fix}") == 0
+    assert os.system(f"diff -B {tmp_fname} {valid_pbx_fix}") == 0
 
 
 def test_no_layout_compiles():
     main({"project": no_layout_proj, "pbx": no_layout_pbx, "not-dry": False})
-    assert os.system(f"diff {tmp_fname} {no_layout_pbx_fix}") == 0
+    assert os.system(f"diff -B {tmp_fname} {no_layout_pbx_fix}") == 0
 
 
 def test_dangling_refs_compiles():
     main({"project": dangling_refs_proj, "pbx": dangling_refs_pbx, "not-dry": False})
-    assert os.system(f"diff {tmp_fname} {dangling_refs_pbx_fix}") == 0
+    assert os.system(f"diff -B {tmp_fname} {dangling_refs_pbx_fix}") == 0
 
 
 def test_empty_strings_compiles():
     main({"project": empty_strings_proj, "pbx": empty_strings_pbx, "not-dry": False})
-    assert os.system(f"diff {tmp_fname} {empty_strings_pbx_fix}") == 0
+    assert os.system(f"diff -B {tmp_fname} {empty_strings_pbx_fix}") == 0
 
